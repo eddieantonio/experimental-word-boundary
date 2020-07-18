@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from hypothesis import given, assume
-from hypothesis.strategies import text, sampled_from
+from hypothesis.strategies import text, sampled_from, characters
 
 from word_boundary import word_boundaries
 from custom_strategies import ideographs, non_empty_text
@@ -48,6 +48,12 @@ def test_newline(newline: str, left: str, right: str) -> None:
     right_boundaries = len(list(word_boundaries(right)))
     example = left + newline + right
     assert len(list(word_boundaries(example))) == left_boundaries + right_boundaries
+
+
+@given(text(alphabet=characters(whitelist_categories=("Zs",)), min_size=1))
+def test_keep_whitespace_together(example):
+    boundaries = list(word_boundaries(example))
+    assert boundaries == [0, len(example)]
 
 
 @given(ideographs())
