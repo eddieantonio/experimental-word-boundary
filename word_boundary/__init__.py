@@ -84,14 +84,10 @@ def word_boundaries(text: str):
             yield index
 
 
-def word_break_property(ch: str) -> Property:
+def word_break_property(ch: str, table=LOOKUP) -> Property:
     assert len(ch) == 1
 
-    MIN_CODEPOINT = 0
-    MAX_CODEPOINT = 0x10FFFF
-
     codepoint = ord(ch)
-    table = LOOKUP
 
     def bisect(start: int, end: int) -> Property:
         if start > end:
