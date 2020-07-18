@@ -1,11 +1,17 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 
 class Op(Enum):
     UNASSIGNED = "?"
     BOUNDARY = "÷"
     NO_BOUNDARY = "×"
+
+
+class Property(Enum):
+    CR = "CR"
+    LF = "LF"
+    UNASSIGNED = "<unassigned>"
 
 
 def wb1(fenceposts: List[Op]) -> None:
@@ -16,6 +22,12 @@ def wb1(fenceposts: List[Op]) -> None:
 def wb2(fenceposts: List[Op]) -> None:
     "Break at the end of text"
     fenceposts[-1] = Op.BOUNDARY
+
+
+def wb3(left: Property, right: Property) -> Optional[Op]:
+    if left == Property.CR and right == Property.LF:
+        return Op.NO_BOUNDARY
+    return None
 
 
 def wb999(fenceposts: List[Op]) -> None:
@@ -34,10 +46,27 @@ def word_boundaries(text: str):
 
     wb1(fenceposts)
     wb2(fenceposts)
+
+    # The following rules require a left and a right
+    properties = [word_break_property(c) for c in text]
+    for i, (a, b) in enumerate(zip(properties, properties[1:]), start=1):
+        if decision := wb3(a, b):
+            fenceposts[i] = decision
     # TODO: other rules
+
     wb999(fenceposts)
 
     # Output boundaries
     for index, op in enumerate(fenceposts):
         if op == Op.BOUNDARY:
             yield index
+
+
+def word_break_property(c: str) -> Property:
+    assert len(c) == 1
+
+    if c == "\r":
+        return Property.CR
+    if c == "\n":
+        return Property.LF
+    return Property.UNASSIGNED
