@@ -1,10 +1,21 @@
 from enum import Enum
+from typing import List
 
 
 class Op(Enum):
     UNASSIGNED = "?"
     BOUNDARY = "÷"
     NO_BOUNDARY = "×"
+
+
+def wb1(fenceposts: List[Op]) -> None:
+    "Break at the start of text"
+    fenceposts[0] = Op.BOUNDARY
+
+
+def wb2(fenceposts: List[Op]) -> None:
+    "Break at the end of text"
+    fenceposts[-1] = Op.BOUNDARY
 
 
 def word_boundaries(text: str):
@@ -14,12 +25,10 @@ def word_boundaries(text: str):
     fenceposts = [Op.UNASSIGNED] * (len(text) + 1)
     assert len(fenceposts) >= 2
 
-    # WB1
-    fenceposts[0] = Op.BOUNDARY
+    wb1(fenceposts)
+    wb2(fenceposts)
 
-    # WB2
-    fenceposts[-1] = Op.BOUNDARY
-
+    # Output boundaries
     for index, op in enumerate(fenceposts):
         if op == Op.BOUNDARY:
             yield index
