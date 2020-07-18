@@ -1,4 +1,8 @@
-
 def word_boundaries(text: str):
-    pass
+    if not text:
+        return
 
+    # WB1
+    yield 0
+    # WB2
+    yield len(text)

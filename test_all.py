@@ -17,6 +17,6 @@ def test_empty():
 @given(text(min_size=1))
 def test_sot_eot(example: str) -> None:
     boundaries = list(word_boundaries(example))
-    assert len(boundaries) > 2
+    assert len(boundaries) >= 2
     assert boundaries[0] == 0
     assert boundaries[-1] == len(example)
