@@ -27,14 +27,14 @@ def wb3(left: Property, right: Property) -> Optional[Op]:
 
 
 def wb3a(left: Property, right: Property) -> Optional[Op]:
-    "break before newlines"
+    "break after newlines"
     if left in (Property.NEWLINE, Property.CR, Property.LF):
         return Op.BOUNDARY
     return None
 
 
 def wb3b(left: Property, right: Property) -> Optional[Op]:
-    "break after newlines"
+    "break before newlines"
     if right in (Property.NEWLINE, Property.CR, Property.LF):
         return Op.BOUNDARY
     return None
@@ -57,22 +57,16 @@ def word_boundaries(text: str):
     wb1(fenceposts)
     wb2(fenceposts)
 
+    def apply_two_prop_rules():
+        for rule in [wb3, wb3a, wb3b]:
+            if decision := rule(a, b):
+                fenceposts[i] = decision
+                return
+
     # The following rules require a left and a right
     properties = [word_break_property(c) for c in text]
     for i, (a, b) in enumerate(zip(properties, properties[1:]), start=1):
-        if decision := wb3(a, b):
-            fenceposts[i] = decision
-            continue
-
-        if decision := wb3a(a, b):
-            fenceposts[i] = decision
-            continue
-
-        if decision := wb3b(a, b):
-            fenceposts[i] = decision
-            continue
-
-    # TODO: other rules
+        apply_two_prop_rules()
 
     wb999(fenceposts)
 
