@@ -20,3 +20,9 @@ def test_sot_eot(example: str) -> None:
     assert len(boundaries) >= 2
     assert boundaries[0] == 0
     assert boundaries[-1] == len(example)
+
+
+def test_crlf():
+    # TODO: come up with a more robust test case
+    boundaries = list(word_boundaries("\r\n"))
+    assert boundaries == [0, len("\r\n")]
