@@ -54,7 +54,7 @@ ranges.sort()
 
 
 def generate_properties():
-    props = {"Other"}
+    props = {"sot", "eot", "Other"}
     for _, _, prop in ranges:
         props.add(prop)
 

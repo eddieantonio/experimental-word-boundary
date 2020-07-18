@@ -1,5 +1,6 @@
+import inspect
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 from .data import Property, LOOKUP
 
@@ -8,50 +9,53 @@ class Op(Enum):
     UNASSIGNED = "?"
     BOUNDARY = "÷"
     NO_BOUNDARY = "×"
+    IGNORE = "→"
 
 
-def wb1(fenceposts: List[Op]) -> None:
+def wb1(left: Property, right: Property) -> Op:
     "Break at the start of text"
-    fenceposts[0] = Op.BOUNDARY
+    if left == Property.SOT:
+        return Op.BOUNDARY
+    return Op.UNASSIGNED
 
 
-def wb2(fenceposts: List[Op]) -> None:
+def wb2(left: Property, right: Property) -> Op:
     "Break at the end of text"
-    fenceposts[-1] = Op.BOUNDARY
+    if right == Property.SOT:
+        return Op.BOUNDARY
+    return Op.UNASSIGNED
 
 
-def wb3(left: Property, right: Property) -> Optional[Op]:
+def wb3(left: Property, right: Property) -> Op:
     if left == Property.CR and right == Property.LF:
         return Op.NO_BOUNDARY
-    return None
+    return Op.UNASSIGNED
 
 
-def wb3a(left: Property, right: Property) -> Optional[Op]:
+def wb3a(left: Property, right: Property) -> Op:
     "break after newlines"
     if left in (Property.NEWLINE, Property.CR, Property.LF):
         return Op.BOUNDARY
-    return None
+    return Op.UNASSIGNED
 
 
-def wb3b(left: Property, right: Property) -> Optional[Op]:
+def wb3b(left: Property, right: Property) -> Op:
     "break before newlines"
     if right in (Property.NEWLINE, Property.CR, Property.LF):
         return Op.BOUNDARY
-    return None
+    return Op.UNASSIGNED
 
 
-def wb3d(left: Property, right: Property) -> Optional[Op]:
+def wb3d(left: Property, right: Property) -> Op:
     "Keep horizontal whitespace together"
     if left == Property.WSEGSPACE and right == Property.WSEGSPACE:
         return Op.NO_BOUNDARY
-    return None
+    return Op.UNASSIGNED
 
 
-def wb999(fenceposts: List[Op]) -> None:
-    "Otherwise, break everywhere"
-    for i, op in enumerate(fenceposts):
-        if op == Op.UNASSIGNED:
-            fenceposts[i] = Op.BOUNDARY
+def wb999(left: Property, right: Property) -> Optional[Op]:
+    "Otherwise, break at every character (include ideographs)"
+    return Op.BOUNDARY
 
 
 def word_boundaries(text: str):
@@ -59,24 +63,43 @@ def word_boundaries(text: str):
         return
 
     fenceposts = [Op.UNASSIGNED] * (len(text) + 1)
-    assert len(fenceposts) >= 2
+    properties = (
+        [Property.SOT] + [word_break_property(c) for c in text] + [Property.EOT]
+    )
 
-    wb1(fenceposts)
-    wb2(fenceposts)
+    assert len(text) + 1 == len(fenceposts)
+    assert len(fenceposts) + 1 == len(properties)
 
-    def apply_two_prop_rules():
-        for rule in [wb3, wb3a, wb3b, wb3d]:
-            # TODO: wb3c
-            if decision := rule(a, b):
-                fenceposts[i] = decision
-                return
+    def apply_rule(rule: Callable) -> Op:
+        sig = inspect.signature(rule)
+        params = sig.parameters
+        if not len(params) == 2:
+            raise NotImplementedError
+        if params["left"].annotation != Property:
+            raise NotImplementedError
+        if params["right"].annotation != Property:
+            raise NotImplementedError
+        left = properties[i]
+        right = properties[i + 1]
+        return rule(left, right)
 
-    # The following rules require a left and a right
-    properties = [word_break_property(c) for c in text]
-    for i, (a, b) in enumerate(zip(properties, properties[1:]), start=1):
-        apply_two_prop_rules()
+    rules = [
+        wb1,
+        wb2,
+        wb3,
+        wb3a,
+        wb3b,
+        # TODO: wb3c
+        wb3d,
+        # TODO: other rules
+        wb999,
+    ]
 
-    wb999(fenceposts)
+    # Apply rules in order:
+    for i in range(len(fenceposts)):
+        rule = iter(rules)
+        while fenceposts[i] == Op.UNASSIGNED:
+            fenceposts[i] = apply_rule(next(rule))
 
     # Output boundaries
     for index, op in enumerate(fenceposts):
