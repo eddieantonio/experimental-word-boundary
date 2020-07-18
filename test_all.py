@@ -44,13 +44,23 @@ def test_crlf() -> None:
 )
 def test_newline(newline: str, left: str, right: str) -> None:
     assume(not (left.endswith("\r") and newline == "\n"))
+    assume(not (newline == "\r" and left.startswith("\n")))
+
     left_boundaries = len(list(word_boundaries(left)))
     right_boundaries = len(list(word_boundaries(right)))
     example = left + newline + right
     assert len(list(word_boundaries(example))) == left_boundaries + right_boundaries
 
 
-@given(text(alphabet=characters(whitelist_categories=("Zs",)), min_size=1))
+@given(
+    text(
+        alphabet=characters(
+            whitelist_categories=("Zs",),
+            blacklist_characters="\u00a0\u2007\u2011\u202f",
+        ),
+        min_size=1,
+    )
+)
 def test_keep_whitespace_together(example):
     boundaries = list(word_boundaries(example))
     assert boundaries == [0, len(example)]

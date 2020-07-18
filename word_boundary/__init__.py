@@ -40,6 +40,13 @@ def wb3b(left: Property, right: Property) -> Optional[Op]:
     return None
 
 
+def wb3d(left: Property, right: Property) -> Optional[Op]:
+    "Keep horizontal whitespace together"
+    if left == Property.WSEGSPACE and right == Property.WSEGSPACE:
+        return Op.NO_BOUNDARY
+    return None
+
+
 def wb999(fenceposts: List[Op]) -> None:
     "Otherwise, break everywhere"
     for i, op in enumerate(fenceposts):
@@ -58,7 +65,8 @@ def word_boundaries(text: str):
     wb2(fenceposts)
 
     def apply_two_prop_rules():
-        for rule in [wb3, wb3a, wb3b]:
+        for rule in [wb3, wb3a, wb3b, wb3d]:
+            # TODO: wb3c
             if decision := rule(a, b):
                 fenceposts[i] = decision
                 return
