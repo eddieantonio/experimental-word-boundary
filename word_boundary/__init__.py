@@ -18,6 +18,13 @@ def wb2(fenceposts: List[Op]) -> None:
     fenceposts[-1] = Op.BOUNDARY
 
 
+def wb999(fenceposts: List[Op]) -> None:
+    "Otherwise, break everywhere"
+    for i, op in enumerate(fenceposts):
+        if op == Op.UNASSIGNED:
+            fenceposts[i] = Op.BOUNDARY
+
+
 def word_boundaries(text: str):
     if not text:
         return
@@ -27,6 +34,8 @@ def word_boundaries(text: str):
 
     wb1(fenceposts)
     wb2(fenceposts)
+    # TODO: other rules
+    wb999(fenceposts)
 
     # Output boundaries
     for index, op in enumerate(fenceposts):
