@@ -1,17 +1,13 @@
 from enum import Enum
 from typing import List, Optional
 
+from .data import Property, LOOKUP
+
 
 class Op(Enum):
     UNASSIGNED = "?"
     BOUNDARY = "÷"
     NO_BOUNDARY = "×"
-
-
-class Property(Enum):
-    CR = "CR"
-    LF = "LF"
-    UNASSIGNED = "<unassigned>"
 
 
 def wb1(fenceposts: List[Op]) -> None:
@@ -62,11 +58,28 @@ def word_boundaries(text: str):
             yield index
 
 
-def word_break_property(c: str) -> Property:
-    assert len(c) == 1
+def word_break_property(ch: str) -> Property:
+    assert len(ch) == 1
 
-    if c == "\r":
-        return Property.CR
-    if c == "\n":
-        return Property.LF
-    return Property.UNASSIGNED
+    MIN_CODEPOINT = 0
+    MAX_CODEPOINT = 0x10FFFF
+
+    codepoint = ord(ch)
+    table = LOOKUP
+
+    def bisect(start: int, end: int) -> Property:
+        if start > end:
+            return Property.OTHER
+
+        midpoint = start + (end - start) // 2
+        r = table[midpoint]
+
+        if codepoint < r.start:
+            return bisect(start, midpoint - 1)
+        elif codepoint > r.end:
+            return bisect(midpoint + 1, end)
+        else:
+            assert r.start <= codepoint <= r.end
+            return r.property
+
+    return bisect(0, len(table) - 1)
