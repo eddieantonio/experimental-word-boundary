@@ -5,7 +5,7 @@ from hypothesis import given
 from hypothesis.strategies import text
 
 from word_boundary import word_boundaries
-from custom_strategies import ideographs
+from custom_strategies import ideographs, non_empty_text
 
 
 def test_empty():
@@ -15,7 +15,7 @@ def test_empty():
     assert len(list(word_boundaries(""))) == 0
 
 
-@given(text(min_size=1))
+@given(non_empty_text())
 def test_sot_eot(example: str) -> None:
     boundaries = list(word_boundaries(example))
     assert len(boundaries) >= 2

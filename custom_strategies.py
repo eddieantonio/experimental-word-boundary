@@ -19,3 +19,7 @@ def ideographs():
             max_codepoint=END_OF_CJK_BLOCK,
         ),
     )
+
+
+def non_empty_text():
+    return text(min_size=1)
