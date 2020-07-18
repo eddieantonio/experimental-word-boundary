@@ -43,8 +43,8 @@ def test_crlf() -> None:
     non_empty_text(),
 )
 def test_newline(newline: str, left: str, right: str) -> None:
-    assume(not (left.endswith("\r") and newline == "\n"))
-    assume(not (newline == "\r" and left.startswith("\n")))
+    assume("\r\n" != left[-1] + newline)
+    assume("\r\n" != newline + right[:1])
 
     left_boundaries = len(list(word_boundaries(left)))
     right_boundaries = len(list(word_boundaries(right)))
