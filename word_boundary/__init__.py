@@ -26,6 +26,20 @@ def wb3(left: Property, right: Property) -> Optional[Op]:
     return None
 
 
+def wb3a(left: Property, right: Property) -> Optional[Op]:
+    "break before newlines"
+    if left in (Property.NEWLINE, Property.CR, Property.LF):
+        return Op.BOUNDARY
+    return None
+
+
+def wb3b(left: Property, right: Property) -> Optional[Op]:
+    "break after newlines"
+    if right in (Property.NEWLINE, Property.CR, Property.LF):
+        return Op.BOUNDARY
+    return None
+
+
 def wb999(fenceposts: List[Op]) -> None:
     "Otherwise, break everywhere"
     for i, op in enumerate(fenceposts):
@@ -48,6 +62,16 @@ def word_boundaries(text: str):
     for i, (a, b) in enumerate(zip(properties, properties[1:]), start=1):
         if decision := wb3(a, b):
             fenceposts[i] = decision
+            continue
+
+        if decision := wb3a(a, b):
+            fenceposts[i] = decision
+            continue
+
+        if decision := wb3b(a, b):
+            fenceposts[i] = decision
+            continue
+
     # TODO: other rules
 
     wb999(fenceposts)
